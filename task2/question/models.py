@@ -14,7 +14,7 @@ class DateParent(models.Model):
         abstract = True
 
 
-class Comment(MPTTModel, DateParent):
+class Comment(DateParent, MPTTModel):
     text = models.TextField()
     user_id = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
 
@@ -29,7 +29,7 @@ class Comment(MPTTModel, DateParent):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
     class MPTTMeta:
-        order_insertion_by = ['text']
+        order_insertion_by = ['date_create']
 
 
 class Question(DateParent):

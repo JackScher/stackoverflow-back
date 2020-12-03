@@ -74,7 +74,7 @@ class AnswerCreateSerializer(serializers.ModelSerializer):
 class CommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id', 'text', 'content_type', 'object_id', 'user_id']
+        fields = ['id', 'text', 'content_type', 'object_id', 'user_id', 'parent']
 
 
 class VoteSerializer(serializers.ModelSerializer):

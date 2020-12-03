@@ -13,15 +13,15 @@ class StatusChoice(models.TextChoices):
     status3 = 'working', 'working'
 
 
-class RankChoices(models.TextChoices):
-    rank1 = 'Freshman', 'Freshman'
-    rank2 = 'Middle', 'Middle'
-    rank3 = 'Experienced', 'Experienced'
+# class RankChoices(models.TextChoices):
+#     rank1 = 'Freshman', 'Freshman'
+#     rank2 = 'Middle', 'Middle'
+#     rank3 = 'Experienced', 'Experienced'
 
 
 class UserProfile(AbstractUser):
     status = models.CharField(max_length=9, choices=StatusChoice.choices, default=StatusChoice.status1)
-    rank = models.CharField(max_length=11, choices=RankChoices.choices, default=RankChoices.rank1)
+    # rank = models.CharField(max_length=11, choices=RankChoices.choices, default=RankChoices.rank1)
 
     avatar = models.ImageField(null=True, blank=True)
     place_of_employment = models.CharField(max_length=255, null=True, blank=True)
