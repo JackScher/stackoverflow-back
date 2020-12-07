@@ -15,6 +15,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from profiles.models import UserProfile
 from profiles.serializers import UserProfileSerializer, UpdateUserProfileSerializer
+from profiles.services import UpdateUserProfileService
+from task2 import settings
 
 
 class CustomView(APIView, ConfirmEmailView):
@@ -89,36 +91,19 @@ class RegisterUserProfileView(RegisterView):
 
 class UpdateUserProfileView(ModelViewSet):
     queryset = UserProfile.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     serializer_class = UpdateUserProfileSerializer
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        user = UserProfile.objects.get(id=request.data['id'])
-        if request.data.get('status'):
-            user.status = request.data['status']
-        if request.data.get('username'):
-            user.username = request.data['username']
-        if user.about_yourself and request.data.get('about_yourself'):
-            user.about_yourself = request.data['about_yourself']
-        elif request.data.get('about_yourself') and not user.about_yourself:
-            user.rating += 1
-            user.about_yourself = request.data['about_yourself']
-        if user.place_of_employment and request.data.get('place_of_employment'):
-            user.place_of_employment = request.data['place_of_employment']
-        elif request.data.get('place_of_employment') and not user.place_of_employment:
-            user.rating += 1
-            user.place_of_employment = request.data['place_of_employment']
-        if user.location and request.data.get('location'):
-            user.location = request.data['location']
-        elif request.data.get('location') and not user.location:
-            user.rating += 1
-            user.location = request.data['location']
-        user.save()
-
-        return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        changed_user = UpdateUserProfileService(request.user, serializer.validated_data).execute()
+        changed_user.save()
+        serialized_data = UpdateUserProfileSerializer(changed_user)
+        return Response({'detail': (serialized_data.data)}, status=status.HTTP_200_OK)
 
 
 class ConfirmModeratorViewSet(ModelViewSet):

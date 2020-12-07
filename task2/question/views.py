@@ -9,10 +9,12 @@ from rest_framework.viewsets import ModelViewSet
 
 from profiles.models import UserProfile
 from question.models import Question, Answer, Comment, Tag, Skill, Vote, ModeratorStory
+from question.permissions import IsModerator
 from question.serializers import QuestionSerializer, TagSerializer, \
     SkillSerializer, QuestionItemSerializer, QuestionCreateSerializer, AnswerCreateSerializer, CommentCreateSerializer, \
     VoteSerializer, TagUpdateSerializer, RemoveTagRelationSerializer, TagDeleteSerializer, ModeratorQuestionSerializer, \
     ModeratorAnswerSerializer, AnswerModuleSerializer
+from question.services import ModeratorUpdateService
 
 
 class QuestionViewSet(ModelViewSet):
@@ -349,49 +351,62 @@ class RemoveTagRelation(ModelViewSet):
 
 class ModeratorQuestionEditViewSet(ModelViewSet):
     queryset = Question.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsModerator)
     serializer_class = ModeratorQuestionSerializer
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        check = self.check_group(request)
-        if check:
-            return check
-        question = Question.objects.get(id=request.data['id'])
-        before_updated = self.get_list(question)
-        title = request.data.get('title')
-        body = request.data.get('body')
-        if title:
-            question.title = title
-        if body:
-            question.body = body
-        question.save()
-        self.save_to_story(request, question, before_updated)
+        instance = self.get_object()
+        serializer = self.get_serializer(data=request.data,)
+        serializer.is_valid(raise_exception=True)
 
-        return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
+        # check_result = ModeratorUpdateService(instance, serializer.validated_data, request.user, 'question')
 
-    def check_group(self, request):
-        if request.data['group'] != 'moderator':
-            return Response({'detail': ('no permissions')}, status=status.HTTP_200_OK)
+        return Response('ok')
 
-    def save_to_story(self, request, question, before_updated):
-        updated = self.get_list(question)
-        moderator = UserProfile.objects.get(id=request.data['current_user_id'])
-        ModeratorStory.objects.create(moderator=moderator, type='question', object=question.id, date=datetime.now(), before_update=before_updated, updated=updated)
+    def get_object(self):
+        return Question.objects.get(id=self.request.data['id'])
 
-    def get_list(self, question):
-        query = {
-            'title': question.title,
-            'body': question.body
-        }
-        return query
+
+    # def update(self, request, *args, **kwargs):
+    #     # check = self.check_group(request)
+    #     # if check:
+    #     #     return check
+    #     question = Question.objects.get(id=request.data['id'])
+    #     before_updated = self.get_list(question)
+    #     title = request.data.get('title')
+    #     body = request.data.get('body')
+    #     if title:
+    #         question.title = title
+    #     if body:
+    #         question.body = body
+    #     question.save()
+    #     self.save_to_story(request, question, before_updated)
+    #
+    #     return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
+    #
+    # def check_group(self, request):
+    #     if request.data['group'] != 'moderator':
+    #         return Response({'detail': ('no permissions')}, status=status.HTTP_200_OK)
+    #
+    # def save_to_story(self, request, question, before_updated):
+    #     updated = self.get_list(question)
+    #     moderator = UserProfile.objects.get(id=request.data['current_user_id'])
+    #     ModeratorStory.objects.create(moderator=moderator, type='question', object=question.id, date=datetime.now(), before_update=before_updated, updated=updated)
+    #
+    # def get_list(self, question):
+    #     query = {
+    #         'title': question.title,
+    #         'body': question.body
+    #     }
+    #     return query
 
 
 class ModeratorAnswerEditViewSet(ModelViewSet):
     queryset = Answer.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsModerator)
     serializer_class = ModeratorAnswerSerializer
 
     def put(self, request, *args, **kwargs):

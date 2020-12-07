@@ -26,7 +26,7 @@ class UserProfileModuleSerializer(serializers.ModelSerializer):
 class CommentModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id', 'text', 'object_id', 'user_id']
+        fields = ['id', 'text', 'object_id', 'user_id', 'parent']
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -108,6 +108,8 @@ class RemoveTagRelationSerializer(serializers.ModelSerializer):
 
 
 class ModeratorQuestionSerializer(serializers.ModelSerializer):
+    body = serializers.CharField(allow_null=True, required=True)
+
     class Meta:
         model = Question
         fields = ('id', 'title', 'body', 'user_id')

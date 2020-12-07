@@ -28,7 +28,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['id', 'username', 'password', 'email', 'avatar', 'place_of_employment', 'about_yourself', 'location',
-                  'rank', 'status', 'answers', 'questions', 'rating', 'user_group']
+                  'status', 'answers', 'questions', 'rating', 'user_group']
 
 
 class UserIdSerializer(serializers.ModelSerializer):
@@ -48,7 +48,12 @@ class MyCustomTokenSerializer(serializers.ModelSerializer):
 
 
 class UpdateUserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(allow_null=True, required=False)
+    # password = serializers.CharField(allow_null=True)
+    status = serializers.CharField(allow_null=True, required=False)
+    user_group = serializers.CharField(allow_null=True, required=False)
+
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'password', 'email', 'avatar', 'place_of_employment', 'about_yourself', 'location',
-                  'status', 'rank']
+        fields = ['username', 'place_of_employment', 'about_yourself', 'location',
+                  'status', 'user_group']
