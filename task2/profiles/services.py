@@ -43,11 +43,15 @@ class GroupService:
 
     def set_user_group(self, group):
         if self.user.user_group == 'moderator' and group == 'moderator':
+            self.user.save()
             return self.user
-        elif self.user.user_group != 'moderator' and group != 'moderator':
+        # elif self.user.user_group == 'moderator' and group != 'moderator':
+        #     self.user.user_group = group
+        elif self.user.user_group != 'moderator' and group != 'moderator' or self.user.user_group == 'moderator' and group != 'moderator':
             self.user.user_group = group
         elif self.user.user_group != 'moderator' and group == 'moderator':
             self.send_email()
+        self.user.save()
         return self.user
 
 
@@ -79,4 +83,5 @@ class UpdateUserProfileService:
         elif self.serialized_data['location'] and not self.user.location:
             self.user = GroupService(self.user, 1, 'up').execute()
             self.user.location = self.serialized_data['location']
+        self.user.save()
         return self.user

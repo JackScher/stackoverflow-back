@@ -71,6 +71,6 @@ class ModeratorStory(models.Model):
     moderator = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     type = models.CharField(max_length=255)
     object = models.IntegerField()
-    date = models.DateTimeField()
+    date = models.DateTimeField(auto_now_add=True)
     before_update = models.CharField(max_length=255, blank=True)
     updated = models.CharField(max_length=255, blank=True)

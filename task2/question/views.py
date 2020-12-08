@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from profiles.models import UserProfile
+from profiles.services import GroupService
 from question.models import Question, Answer, Comment, Tag, Skill, Vote, ModeratorStory
 from question.permissions import IsModerator
 from question.serializers import QuestionSerializer, TagSerializer, \
@@ -61,16 +62,13 @@ class QuestionCreateView(ModelViewSet):
     serializer_class = QuestionCreateSerializer
 
     def create(self, request, *args, **kwargs):
-        user = UserProfile.objects.get(id=request.data['user_id'])
-        check = self.check(user)
+        check = self.check(request.user)
         if check:
-            return Response({'detail': ('you can`t ask questions')}, status=status.HTTP_200_OK)
-
+            return Response({'detail': 'you can`t ask questions'}, status=status.HTTP_200_OK)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        user.rating += 1
-        user.save()
+        GroupService(request.user, 1, 'up').execute()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -126,9 +124,7 @@ class AnswerCreateView(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        user = UserProfile.objects.get(id=request.data['user_id'])
-        user.rating += 1
-        user.save()
+        GroupService(request.user, 1, 'up').execute()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -176,7 +172,6 @@ class CommentViewSet(ModelViewSet):
         return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
 
     def check_user_id(self, request):
-        print('in check')
         if request.data['user_id'] != int(request.data['current_user_id']):
             return Response({'detail': ('not yours')}, status=status.HTTP_200_OK)
 
@@ -204,7 +199,7 @@ class VoteViewSet(ModelViewSet):
             return Response({'detail': mess}, status=status.HTTP_200_OK)
         mess = self.restriction_of_self_voting(request, voter)
         if request.data['detail'] == 'question' and mess is None:
-            mess = self.check_question_create_time(request)
+            mess = self.check_item_create_time(request)
         if mess:
             return Response({'detail': mess}, status=status.HTTP_200_OK)
         result = self.create_vote(request)
@@ -256,18 +251,17 @@ class VoteViewSet(ModelViewSet):
     def rate_user(self, request):
         owner = self.get_item_owner(request)
         if request.data['action'] == 'up':
-            owner.rating += 1
+            GroupService(owner, 1, 'up').execute()
             mess = 'liked'
         else:
-            owner.rating -= 1
+            GroupService(owner, 1, 'down').execute()
             mess = 'disliked'
-        owner.save()
         return mess
 
     def perform_create(self, serializer):
         return serializer.save()
 
-    def check_question_create_time(self, request):
+    def check_item_create_time(self, request):
         current_object = self.get_current_object(request)
         date, date_now = self.convert_date(current_object)
         difference = date_now-date
@@ -286,7 +280,7 @@ class VoteViewSet(ModelViewSet):
     def check_time_for_revote(self, vote):
         date, date_now = self.convert_date(vote)
         difference = date_now - date
-        delta = timedelta(seconds=3)
+        delta = timedelta(hours=3)
         return self.return_result(difference, delta)
 
     def convert_date(self, item):
@@ -361,47 +355,12 @@ class ModeratorQuestionEditViewSet(ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data,)
         serializer.is_valid(raise_exception=True)
-
-        # check_result = ModeratorUpdateService(instance, serializer.validated_data, request.user, 'question')
-
-        return Response('ok')
+        updated_question = ModeratorUpdateService(instance, serializer.validated_data, request.user, 'question').execute()
+        serialized_data = ModeratorQuestionSerializer(updated_question)
+        return Response(serialized_data.data)
 
     def get_object(self):
         return Question.objects.get(id=self.request.data['id'])
-
-
-    # def update(self, request, *args, **kwargs):
-    #     # check = self.check_group(request)
-    #     # if check:
-    #     #     return check
-    #     question = Question.objects.get(id=request.data['id'])
-    #     before_updated = self.get_list(question)
-    #     title = request.data.get('title')
-    #     body = request.data.get('body')
-    #     if title:
-    #         question.title = title
-    #     if body:
-    #         question.body = body
-    #     question.save()
-    #     self.save_to_story(request, question, before_updated)
-    #
-    #     return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
-    #
-    # def check_group(self, request):
-    #     if request.data['group'] != 'moderator':
-    #         return Response({'detail': ('no permissions')}, status=status.HTTP_200_OK)
-    #
-    # def save_to_story(self, request, question, before_updated):
-    #     updated = self.get_list(question)
-    #     moderator = UserProfile.objects.get(id=request.data['current_user_id'])
-    #     ModeratorStory.objects.create(moderator=moderator, type='question', object=question.id, date=datetime.now(), before_update=before_updated, updated=updated)
-    #
-    # def get_list(self, question):
-    #     query = {
-    #         'title': question.title,
-    #         'body': question.body
-    #     }
-    #     return query
 
 
 class ModeratorAnswerEditViewSet(ModelViewSet):
@@ -413,37 +372,15 @@ class ModeratorAnswerEditViewSet(ModelViewSet):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        check = self.check_group(request)
-        if check:
-            return check
-        answer = Answer.objects.get(id=request.data['id'])
-        before_updated = self.get_list(answer)
-        title = request.data.get('title')
-        body = request.data.get('body')
-        if title:
-            answer.title = title
-        if body:
-            answer.body = body
-        answer.save()
-        self.save_to_story(request, answer, before_updated)
+        instance = self.get_object()
+        serializer = self.get_serializer(data=request.data,)
+        serializer.is_valid(raise_exception=True)
+        updated_question = ModeratorUpdateService(instance, serializer.validated_data, request.user, 'answer').execute()
+        serialized_data = ModeratorQuestionSerializer(updated_question)
+        return Response(serialized_data.data)
 
-        return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
-
-    def check_group(self, request):
-        if request.data['group'] != 'moderator':
-            return Response({'detail': ('no permissions')}, status=status.HTTP_200_OK)
-
-    def save_to_story(self, request, answer, before_updated):
-        updated = self.get_list(answer)
-        moderator = UserProfile.objects.get(id=request.data['current_user_id'])
-        ModeratorStory.objects.create(moderator=moderator, type='answer', object=answer.id, date=datetime.now(), before_update=before_updated, updated=updated)
-
-    def get_list(self, answer):
-        query = {
-            'title': answer.title,
-            'body': answer.body
-        }
-        return query
+    def get_object(self):
+        return Answer.objects.get(id=self.request.data['id'])
 
 
 class AnswerListViewSet(ModelViewSet):

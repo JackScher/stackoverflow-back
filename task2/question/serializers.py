@@ -116,6 +116,8 @@ class ModeratorQuestionSerializer(serializers.ModelSerializer):
 
 
 class ModeratorAnswerSerializer(serializers.ModelSerializer):
+    body = serializers.CharField(allow_null=True, required=True)
+
     class Meta:
         model = Answer
         fields = ('id', 'title', 'body', 'user_id')

@@ -101,9 +101,8 @@ class UpdateUserProfileView(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         changed_user = UpdateUserProfileService(request.user, serializer.validated_data).execute()
-        changed_user.save()
         serialized_data = UpdateUserProfileSerializer(changed_user)
-        return Response({'detail': (serialized_data.data)}, status=status.HTTP_200_OK)
+        return Response({'detail': serialized_data.data}, status=status.HTTP_200_OK)
 
 
 class ConfirmModeratorViewSet(ModelViewSet):
@@ -112,9 +111,10 @@ class ConfirmModeratorViewSet(ModelViewSet):
     serializer_class = UserProfileSerializer
 
     def create(self, request, *args, **kwargs):
-        user = UserProfile.objects.get(id=request.data['current_user'])
-        id = request.data['user']
-        if user.id == int(id):
-            user.user_group = 'moderator'
-            user.save()
+        try:
+            user = UserProfile.objects.get(id=request.data['user'])
+        except:
+            return Response({'detail': 'user is not exist'}, status=status.HTTP_200_OK)
+        user.user_group = 'moderator'
+        user.save()
         return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
