@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from question.views import QuestionViewSet, AnswerCreateView, CommentViewSet, TagViewSet, SkillViewSet, \
     QuestionItemViewSet, QuestionCreateView, VoteViewSet, TagUpdateViewSet, RemoveTagRelation, TagDeleteViewSet, \
-    ModeratorQuestionEditViewSet, ModeratorAnswerEditViewSet, AnswerListViewSet
+    ModeratorQuestionEditViewSet, ModeratorAnswerEditViewSet, AnswerListViewSet, SkillCreateViewSet, SkillUpdateViewSet
 
 router = DefaultRouter()
 router.register('api/answers', AnswerListViewSet)
@@ -27,6 +27,8 @@ router.register('api/tag/remove', RemoveTagRelation)
 
 
 router.register('api/skills', SkillViewSet)
+router.register('api/skills/create', SkillCreateViewSet)
+router.register('api/skills/update', SkillUpdateViewSet)
 
 
 urlpatterns = [

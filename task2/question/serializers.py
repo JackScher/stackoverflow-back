@@ -126,4 +126,4 @@ class ModeratorAnswerSerializer(serializers.ModelSerializer):
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
-        fields = '__all__'
+        fields = ('user_id', 'tag_id')

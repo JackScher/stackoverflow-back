@@ -10,7 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 from profiles.models import UserProfile
 from profiles.services import GroupService
 from question.models import Question, Answer, Comment, Tag, Skill, Vote, ModeratorStory
-from question.permissions import IsModerator
+from question.permissions import IsModerator, IsOwner
 from question.serializers import QuestionSerializer, TagSerializer, \
     SkillSerializer, QuestionItemSerializer, QuestionCreateSerializer, AnswerCreateSerializer, CommentCreateSerializer, \
     VoteSerializer, TagUpdateSerializer, RemoveTagRelationSerializer, TagDeleteSerializer, ModeratorQuestionSerializer, \
@@ -388,8 +388,38 @@ class AnswerListViewSet(ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
     serializer_class = AnswerModuleSerializer
 
+##########################################################################################
 
 class SkillViewSet(ModelViewSet):
     queryset = Skill.objects.all()
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = ['user_id']
+    serializer_class = SkillSerializer
+
+
+class SkillUpdateViewSet(ModelViewSet):
+    queryset = Skill.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    serializer_class = SkillSerializer
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag = Tag.objects.get(id=serializer.data['tag_id'])
+        instance.tag_id.add(tag)
+        response = SkillSerializer(instance)
+        return Response(response.data)
+
+    def get_object(self):
+        return Skill.objects.get(id=self.request.data['id'])
+
+
+class SkillCreateViewSet(ModelViewSet):
+    queryset = Skill.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     serializer_class = SkillSerializer
