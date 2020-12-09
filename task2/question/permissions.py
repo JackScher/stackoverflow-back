@@ -10,6 +10,6 @@ class IsModerator(BasePermission):
 
 class IsOwner(BasePermission):
     def has_permission(self, request, view):
-        if request.data.get('user_id') != request.user.id:
+        if request.data.get('user_id') == request.user.id:
             return True
         return False

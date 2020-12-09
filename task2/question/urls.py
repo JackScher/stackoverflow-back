@@ -1,22 +1,26 @@
 from rest_framework.routers import DefaultRouter
 
-from question.views import QuestionViewSet, AnswerCreateView, CommentViewSet, TagViewSet, SkillViewSet, \
+from question.views import QuestionViewSet, AnswerCreateView, CommentCreateViewSet, TagViewSet, SkillViewSet, \
     QuestionItemViewSet, QuestionCreateView, VoteViewSet, TagUpdateViewSet, RemoveTagRelation, TagDeleteViewSet, \
-    ModeratorQuestionEditViewSet, ModeratorAnswerEditViewSet, AnswerListViewSet, SkillCreateViewSet, SkillUpdateViewSet
+    ModeratorQuestionEditViewSet, ModeratorAnswerEditViewSet, AnswerListViewSet, SkillCreateViewSet, SkillUpdateViewSet, \
+    QuestionUpdateViewSet, AnswerUpdateViewSet, CommentUpdateViewSet
 
 router = DefaultRouter()
 router.register('api/answers', AnswerListViewSet)
 router.register('api/answer/create', AnswerCreateView)
+router.register('api/answer/edit', AnswerUpdateViewSet)
 
 router.register('api/vote', VoteViewSet)
 router.register('api/questions', QuestionViewSet)
+router.register('api/question/edit', QuestionUpdateViewSet)
 router.register('api/question/item', QuestionItemViewSet)
 router.register('api/question/create', QuestionCreateView)
 router.register('api/moderator/question/edit', ModeratorQuestionEditViewSet)
 router.register('api/moderator/answer/edit', ModeratorAnswerEditViewSet)
 
 
-router.register('api/comment/create', CommentViewSet)
+router.register('api/comment/create', CommentCreateViewSet)
+router.register('api/comment/edit', CommentUpdateViewSet)
 
 
 # router.register('api/rate', RateViewSet)

@@ -18,18 +18,24 @@ from question.serializers import QuestionSerializer, TagSerializer, \
 from question.services import ModeratorUpdateService
 
 
+########################################################################################################################
+
+
 class QuestionViewSet(ModelViewSet):
     queryset = Question.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    serializer_class = QuestionSerializer
+
+
+class QuestionUpdateViewSet(ModelViewSet):
+    queryset = Question.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly, IsOwner)
     serializer_class = QuestionSerializer
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        check = self.check_user_id(request)
-        if check:
-            return check
         question = Question.objects.get(id=request.data['id'])
         title = request.data.get('title')
         body = request.data.get('body')
@@ -40,10 +46,6 @@ class QuestionViewSet(ModelViewSet):
         question.save()
         return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
 
-    def check_user_id(self, request):
-        if request.data['user_id'] != int(request.data['current_user_id']):
-            return Response({'detail': ('not yours')}, status=status.HTTP_200_OK)
-
 
 class QuestionItemViewSet(ModelViewSet):
     queryset = Question.objects.all()
@@ -51,9 +53,6 @@ class QuestionItemViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filter_fields = ['id']
     serializer_class = QuestionItemSerializer
-
-
-################################################################
 
 
 class QuestionCreateView(ModelViewSet):
@@ -112,7 +111,12 @@ class QuestionCreateView(ModelViewSet):
         return date, now
 
 
-####################################################################
+########################################################################################################################
+
+class AnswerListViewSet(ModelViewSet):
+    queryset = Answer.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    serializer_class = AnswerModuleSerializer
 
 
 class AnswerCreateView(ModelViewSet):
@@ -128,13 +132,16 @@ class AnswerCreateView(ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+
+class AnswerUpdateViewSet(ModelViewSet):
+    queryset = Answer.objects.all()
+    permission_classes = (IsAuthenticated, IsOwner)
+    serializer_class = AnswerCreateSerializer
+
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        check = self.check_user_id(request)
-        if check:
-            return check
         answer = Answer.objects.get(id=request.data['id'])
         title = request.data.get('title')
         body = request.data.get('body')
@@ -145,25 +152,25 @@ class AnswerCreateView(ModelViewSet):
         answer.save()
         return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
 
-    def check_user_id(self, request):
-        if request.data['user_id'] != int(request.data['current_user_id']):
-            return Response({'detail': ('not yours')}, status=status.HTTP_200_OK)
 
-####################################################################
+########################################################################################################################
 
 
-class CommentViewSet(ModelViewSet):
+class CommentCreateViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    serializer_class = CommentCreateSerializer
+
+
+class CommentUpdateViewSet(ModelViewSet):
+    queryset = Comment.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly, IsOwner)
     serializer_class = CommentCreateSerializer
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        check = self.check_user_id(request)
-        if check:
-            return check
         comment = Comment.objects.get(id=request.data['id'])
         text = request.data.get('text')
         if text:
@@ -171,12 +178,8 @@ class CommentViewSet(ModelViewSet):
         comment.save()
         return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
 
-    def check_user_id(self, request):
-        if request.data['user_id'] != int(request.data['current_user_id']):
-            return Response({'detail': ('not yours')}, status=status.HTTP_200_OK)
 
-
-####################################################################
+########################################################################################################################
 
 
 class VoteViewSet(ModelViewSet):
@@ -243,8 +246,7 @@ class VoteViewSet(ModelViewSet):
     def create_vote(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        res = self.perform_create(serializer)
-        res.save()
+        serializer.save()
         self.rate_user(request)
         return serializer
 
@@ -257,9 +259,6 @@ class VoteViewSet(ModelViewSet):
             GroupService(owner, 1, 'down').execute()
             mess = 'disliked'
         return mess
-
-    def perform_create(self, serializer):
-        return serializer.save()
 
     def check_item_create_time(self, request):
         current_object = self.get_current_object(request)
@@ -292,6 +291,9 @@ class VoteViewSet(ModelViewSet):
         if difference > delta:
             return 'can`t vote because of time'
         return None
+
+
+########################################################################################################################
 
 
 class TagViewSet(ModelViewSet):
@@ -343,6 +345,9 @@ class RemoveTagRelation(ModelViewSet):
         return Response({'detail': 'updated'}, status=status.HTTP_200_OK)
 
 
+########################################################################################################################
+
+
 class ModeratorQuestionEditViewSet(ModelViewSet):
     queryset = Question.objects.all()
     permission_classes = (IsAuthenticated, IsModerator)
@@ -383,12 +388,8 @@ class ModeratorAnswerEditViewSet(ModelViewSet):
         return Answer.objects.get(id=self.request.data['id'])
 
 
-class AnswerListViewSet(ModelViewSet):
-    queryset = Answer.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, )
-    serializer_class = AnswerModuleSerializer
+########################################################################################################################
 
-##########################################################################################
 
 class SkillViewSet(ModelViewSet):
     queryset = Skill.objects.all()
