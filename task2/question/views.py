@@ -304,7 +304,7 @@ class TagViewSet(ModelViewSet):
 
 class TagUpdateViewSet(ModelViewSet):
     queryset = Tag.objects.all()
-    permission_classes = (IsAuthenticated, IsOwner)
+    permission_classes = (IsAuthenticated, )
     serializer_class = TagUpdateSerializer
 
     def put(self, request, *args, **kwargs):
@@ -326,7 +326,7 @@ class TagDeleteViewSet(ModelViewSet):
         return self.retrieve(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-        instance = Tag.objects.get(id=request.data['id']).delete()
+        Tag.objects.get(id=request.data['id']).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
