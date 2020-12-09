@@ -304,14 +304,13 @@ class TagViewSet(ModelViewSet):
 
 class TagUpdateViewSet(ModelViewSet):
     queryset = Tag.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = TagUpdateSerializer
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        # partial = kwargs.pop('partial', False)
         instance = Tag.objects.get(id=request.data['id'])
         question = Question.objects.get(id=request.data['question_id'])
         instance.question_id.add(question)
