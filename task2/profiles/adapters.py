@@ -14,5 +14,5 @@ class CustomAdapter(DefaultAccountAdapter):
         confirmations are sent outside of the request context `request`
         can be `None` here.
         """
-        url = settings.FRONTEND_HOST + '/?URLquery=' + emailconfirmation.key
+        url = settings.FRONTEND_HOST + '/confirm/?URLquery=' + emailconfirmation.key
         return url
