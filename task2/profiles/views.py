@@ -16,7 +16,6 @@ from rest_framework.viewsets import ModelViewSet
 from profiles.models import UserProfile
 from profiles.serializers import UserProfileSerializer, UpdateUserProfileSerializer
 from profiles.services import UpdateUserProfileService, GroupService
-from task2 import settings
 
 
 class CustomView(APIView, ConfirmEmailView):
@@ -112,7 +111,7 @@ class ConfirmModeratorViewSet(ModelViewSet):
     serializer_class = UserProfileSerializer
 
     def put(self, request, *args, **kwargs):
-        return self.update(request, id=None, *args, **kwargs)
+        return self.update(request, *args, **kwargs)
 
     def update(self, request, id=None, *args, **kwargs):
         try:
