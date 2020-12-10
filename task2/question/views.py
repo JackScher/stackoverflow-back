@@ -302,7 +302,7 @@ class TagViewSet(ModelViewSet):
     serializer_class = TagSerializer
 
 
-class TagUpdateViewSet(ModelViewSet):
+class AddTagRelationViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     permission_classes = (IsAuthenticated, )
     serializer_class = TagUpdateSerializer

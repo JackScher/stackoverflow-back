@@ -15,9 +15,13 @@ class GroupService:
 
     def change_user_rating(self):
         if self.mode == 'up':
+            self.calculate_added_value()
             self.user.rating += self.value
         if self.mode == 'down':
             self.user.rating -= self.value
+
+    def calculate_added_value(self):
+        self.value = self.get_user_rating_count(self.user.rating)
 
     def get_user_group(self, count):
         user_groups = {
@@ -45,8 +49,6 @@ class GroupService:
         if self.user.user_group == 'moderator' and group == 'moderator':
             self.user.save()
             return self.user
-        # elif self.user.user_group == 'moderator' and group != 'moderator':
-        #     self.user.user_group = group
         elif self.user.user_group != 'moderator' and group != 'moderator' or self.user.user_group == 'moderator' and group != 'moderator':
             self.user.user_group = group
         elif self.user.user_group != 'moderator' and group == 'moderator':

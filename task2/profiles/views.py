@@ -15,7 +15,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from profiles.models import UserProfile
 from profiles.serializers import UserProfileSerializer, UpdateUserProfileSerializer
-from profiles.services import UpdateUserProfileService
+from profiles.services import UpdateUserProfileService, GroupService
 from task2 import settings
 
 
@@ -108,13 +108,19 @@ class UpdateUserProfileView(ModelViewSet):
 class ConfirmModeratorViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     permission_classes = (AllowAny, )
+    lookup_field = 'id'
     serializer_class = UserProfileSerializer
 
-    def create(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
+        return self.update(request, id=None, *args, **kwargs)
+
+    def update(self, request, id=None, *args, **kwargs):
         try:
-            user = UserProfile.objects.get(id=request.data['user'])
+            user = UserProfile.objects.get(id=int(id))
         except:
             return Response({'detail': 'user is not exist'}, status=status.HTTP_200_OK)
-        user.user_group = 'moderator'
-        user.save()
-        return Response({'detail': ('ok')}, status=status.HTTP_200_OK)
+        if GroupService(user, None, None).get_user_group(GroupService(user, None, None).get_user_rating_count(user.rating)) == 'moderator':
+            user.user_group = 'moderator'
+            user.save()
+        serialized_data = UserProfileSerializer(user)
+        return Response({'detail': serialized_data.data}, status=status.HTTP_200_OK)
