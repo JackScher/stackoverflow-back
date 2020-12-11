@@ -118,7 +118,7 @@ class ConfirmModeratorViewSet(ModelViewSet):
             user = UserProfile.objects.get(id=int(id))
         except:
             return Response({'detail': 'user is not exist'}, status=status.HTTP_200_OK)
-        if GroupService(user, None, None).get_user_group(GroupService(user, None, None).get_user_rating_count(user.rating)) == 'moderator':
+        if GroupService(user, None, None, False).get_user_group(GroupService(user, None, None, False).get_user_rating_count(user.rating)) == 'moderator':
             user.user_group = 'moderator'
             user.save()
         serialized_data = UserProfileSerializer(user)

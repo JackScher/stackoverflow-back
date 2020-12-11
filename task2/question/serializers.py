@@ -108,6 +108,7 @@ class RemoveTagRelationSerializer(serializers.ModelSerializer):
 
 
 class ModeratorQuestionSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(allow_null=True, required=True)
     body = serializers.CharField(allow_null=True, required=True)
 
     class Meta:
@@ -116,6 +117,7 @@ class ModeratorQuestionSerializer(serializers.ModelSerializer):
 
 
 class ModeratorAnswerSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(allow_null=True, required=True)
     body = serializers.CharField(allow_null=True, required=True)
 
     class Meta:

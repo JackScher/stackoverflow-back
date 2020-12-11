@@ -3,10 +3,11 @@ from django.core.mail import send_mail
 
 
 class GroupService:
-    def __init__(self, user, value, mode):
+    def __init__(self, user, value, mode, is_profile_edit):
         self.user = user
         self.value = value
         self.mode = mode
+        self.is_profile_edit = is_profile_edit
 
     def execute(self):
         self.change_user_rating()
@@ -15,7 +16,8 @@ class GroupService:
 
     def change_user_rating(self):
         if self.mode == 'up':
-            self.calculate_added_value()
+            if self.is_profile_edit:
+                self.calculate_added_value()
             self.user.rating += self.value
         if self.mode == 'down':
             self.user.rating -= self.value
@@ -40,7 +42,7 @@ class GroupService:
         return result
 
     def send_email(self):
-        url = settings.FRONTEND_HOST + '/?moderator_query=' + str(self.user.id)
+        url = settings.FRONTEND_HOST + '/moderator/confirm/?moderator_query=' + str(self.user.id)
         subject = '{} ({}) recommends you reading'.format(self.user.username, self.user.email)
         message = 'If you want to become moderator click the url {}'.format(url)
         send_mail(subject, message, 'admin@myblog.com', [self.user.email])
@@ -73,17 +75,17 @@ class UpdateUserProfileService:
         if self.user.about_yourself and self.serialized_data['about_yourself']:
             self.user.about_yourself = self.serialized_data['about_yourself']
         elif self.serialized_data['about_yourself'] and not self.user.about_yourself:
-            self.user = GroupService(self.user, 1, 'up').execute()
+            self.user = GroupService(self.user, 1, 'up', False).execute()
             self.user.about_yourself = self.serialized_data['about_yourself']
         if self.user.place_of_employment and self.serialized_data['place_of_employment']:
             self.user.place_of_employment = self.serialized_data['place_of_employment']
         elif self.serialized_data['place_of_employment'] and not self.user.place_of_employment:
-            self.user = GroupService(self.user, 1, 'up').execute()
+            self.user = GroupService(self.user, 1, 'up', False).execute()
             self.user.place_of_employment = self.serialized_data['place_of_employment']
         if self.user.location and self.serialized_data['location']:
             self.user.location = self.serialized_data['location']
         elif self.serialized_data['location'] and not self.user.location:
-            self.user = GroupService(self.user, 1, 'up').execute()
+            self.user = GroupService(self.user, 1, 'up', False).execute()
             self.user.location = self.serialized_data['location']
         self.user.save()
         return self.user

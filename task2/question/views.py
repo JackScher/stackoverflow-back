@@ -67,7 +67,7 @@ class QuestionCreateView(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        GroupService(request.user, 1, 'up').execute()
+        GroupService(request.user, 1, 'up', True).execute()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -129,7 +129,7 @@ class AnswerCreateView(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        GroupService(request.user, 1, 'up').execute()
+        GroupService(request.user, 1, 'up', True).execute()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -254,10 +254,10 @@ class VoteViewSet(ModelViewSet):
     def rate_user(self, request):
         owner = self.get_item_owner(request)
         if request.data['action'] == 'up':
-            GroupService(owner, 1, 'up').execute()
+            GroupService(owner, 1, 'up', True).execute()
             mess = 'liked'
         else:
-            GroupService(owner, 1, 'down').execute()
+            GroupService(owner, 1, 'down', True).execute()
             mess = 'disliked'
         return mess
 
