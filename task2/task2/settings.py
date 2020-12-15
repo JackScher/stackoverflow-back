@@ -40,24 +40,23 @@ INSTALLED_APPS = [
     'django_filters',
 
     'mptt',
-
     'corsheaders',
-
     'rest_framework',
     'rest_framework.authtoken',
 
     'rest_auth',
+    'rest_auth.registration',
 
     'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'rest_auth.registration',
+
 
     # 'allauth.socialaccount.providers.linkedin',
     # 'allauth.socialaccount.providers.linkedin_oauth2',
 
-    'allauth.socialaccount.providers.google',
+    # 'allauth.socialaccount.providers.google',
 
     'profiles',
     'question'
@@ -109,21 +108,26 @@ ROOT_URLCONF = 'task2.urls'
 
 #####################################===Google===#####################################
 
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'offline',
-        }
-    }
-}
-
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '730249173496-cs79cmelhvjcgfqogrl7502au66finrs.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '4G2H5jm80pgXjzoeWWgftf1v'
-APPEND_SLASH = False
+# SOCIALACCOUNT_PROVIDERS = {
+#     'google': {
+#         'SCOPE': [
+#             'profile',
+#             'email',
+#         ],
+#         'AUTH_PARAMS': {
+#             'access_type': 'online',
+#         }
+#     }
+# }
+#
+# AUTHENTICATION_BACKENDS = (
+#     'django.contrib.auth.backends.ModelBackend',
+#     'allauth.account.auth_backends.AuthenticationBackend',
+#  )
+#
+# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '730249173496-cs79cmelhvjcgfqogrl7502au66finrs.apps.googleusercontent.com'
+# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '4G2H5jm80pgXjzoeWWgftf1v'
+# APPEND_SLASH = False
 
 #####################################===Google===#####################################
 
@@ -190,6 +194,10 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+
+        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
     ],
     # 'DATETIME_FORMAT': "%Y-%m-%dT%H:%M:%S",
 }
@@ -261,3 +269,4 @@ ACCOUNT_ADAPTER = 'profiles.adapters.CustomAdapter'
 FRONTEND_HOST = 'http://127.0.0.1:8080'
 
 SITE_ID = 1
+# LOGIN_REDIRECT_URL = '/'
