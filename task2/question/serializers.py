@@ -126,6 +126,16 @@ class ModeratorAnswerSerializer(serializers.ModelSerializer):
 
 
 class SkillSerializer(serializers.ModelSerializer):
+    tag_id = TagModuleSerializer(many=True)
+
     class Meta:
         model = Skill
-        fields = ('user_id', 'tag_id')
+        fields = ('id', 'name', 'user_id', 'tag_id')
+
+
+class SkillRemoveTagRelationSerializer(serializers.ModelSerializer):
+    tag_id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Skill
+        fields = ('id', 'tag_id')

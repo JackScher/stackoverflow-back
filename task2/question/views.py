@@ -14,7 +14,7 @@ from question.permissions import IsModerator, IsOwner
 from question.serializers import QuestionSerializer, TagSerializer, \
     SkillSerializer, QuestionItemSerializer, QuestionCreateSerializer, AnswerCreateSerializer, CommentCreateSerializer, \
     VoteSerializer, TagUpdateSerializer, RemoveTagRelationSerializer, TagDeleteSerializer, ModeratorQuestionSerializer, \
-    ModeratorAnswerSerializer, AnswerModuleSerializer
+    ModeratorAnswerSerializer, AnswerModuleSerializer, SkillRemoveTagRelationSerializer
 from question.services import ModeratorUpdateService
 
 
@@ -402,7 +402,7 @@ class SkillViewSet(ModelViewSet):
 class SkillUpdateViewSet(ModelViewSet):
     queryset = Skill.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, )
-    serializer_class = SkillSerializer
+    serializer_class = SkillRemoveTagRelationSerializer
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -411,7 +411,7 @@ class SkillUpdateViewSet(ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        tag = Tag.objects.get(id=serializer.data['tag_id'])
+        tag = Tag.objects.get(id=serializer.validated_data['tag_id'])
         instance.tag_id.add(tag)
         response = SkillSerializer(instance)
         return Response(response.data)
@@ -422,5 +422,42 @@ class SkillUpdateViewSet(ModelViewSet):
 
 class SkillCreateViewSet(ModelViewSet):
     queryset = Skill.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = (IsAuthenticated, )
     serializer_class = SkillSerializer
+
+    def create(self, request, *args, **kwargs):
+        print('in create')
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+
+        # return self.create(request, *args, **kwargs)
+        return Response({'awdawd': 'ok'})
+
+
+class SkillRemoveTagRelation(ModelViewSet):
+    queryset = Skill.objects.all()
+    permission_classes = (IsAuthenticated, )
+    serializer_class = SkillRemoveTagRelationSerializer
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        instance = Skill.objects.get(id=request.data['id'])
+        instance.tag_id.remove(request.data['tag_id'])
+        return Response({'detail': 'updated'}, status=status.HTTP_200_OK)
+
+
+class SkillDeleteViewSet(ModelViewSet):
+    queryset = Skill.objects.all()
+    permission_classes = (IsAuthenticated, )
+    serializer_class = SkillSerializer
+
+    # def put(self, request, *args, **kwargs):
+    #     return self.destroy(request, *args, **kwargs)
+    #
+    # def destroy(self, request, *args, **kwargs):
+    #     Skill.objects.get(id=request.data['id']).delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)

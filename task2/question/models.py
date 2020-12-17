@@ -54,6 +54,7 @@ class Tag(DateParent):
 
 
 class Skill(models.Model):
+    name = models.CharField(max_length=255, default='skill')
     user_id = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     tag_id = models.ManyToManyField(to=Tag)
 
