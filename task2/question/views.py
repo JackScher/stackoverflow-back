@@ -14,7 +14,8 @@ from question.permissions import IsModerator, IsOwner
 from question.serializers import QuestionSerializer, TagSerializer, \
     SkillSerializer, QuestionItemSerializer, QuestionCreateSerializer, AnswerCreateSerializer, CommentCreateSerializer, \
     VoteSerializer, TagUpdateSerializer, RemoveTagRelationSerializer, TagDeleteSerializer, ModeratorQuestionSerializer, \
-    ModeratorAnswerSerializer, AnswerModuleSerializer, SkillRemoveTagRelationSerializer
+    ModeratorAnswerSerializer, AnswerModuleSerializer, SkillRemoveTagRelationSerializer, SkillDeleteSerializer, \
+    SkillCreateSerializer
 from question.services import ModeratorUpdateService
 
 
@@ -323,13 +324,6 @@ class TagDeleteViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated, )
     serializer_class = TagDeleteSerializer
 
-    def put(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        Tag.objects.get(id=request.data['id']).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class RemoveTagRelation(ModelViewSet):
     queryset = Tag.objects.all()
@@ -398,6 +392,25 @@ class SkillViewSet(ModelViewSet):
     filter_fields = ['user_id']
     serializer_class = SkillSerializer
 
+    def create(self, request, *args, **kwargs):
+        user = UserProfile.objects.get(id=request.user.id)
+        serializer = self.get_serializer(data=request.data)
+        tags, tag_for_validation = self.get_tags_information(request)
+        request.data['tag_id'] = tag_for_validation
+        serializer.is_valid(raise_exception=True)
+        new_skill = Skill.objects.create(name=serializer.validated_data['name'], user_id=user)
+        new_skill.tag_id.set(tags)
+        return Response({'detail:': serializer.data}, status.HTTP_201_CREATED)
+
+    def get_tags_information(self, request):
+        list_of_tags_for_validation = []
+        list_of_tags = []
+        for id in request.data['tag_id']:
+            item = {'id': Tag.objects.get(id=id).id, 'name': Tag.objects.get(id=id).name}
+            list_of_tags_for_validation.append(item)
+            list_of_tags.append(Tag.objects.get(id=id))
+        return list_of_tags, list_of_tags_for_validation
+
 
 class SkillUpdateViewSet(ModelViewSet):
     queryset = Skill.objects.all()
@@ -420,22 +433,6 @@ class SkillUpdateViewSet(ModelViewSet):
         return Skill.objects.get(id=self.request.data['id'])
 
 
-class SkillCreateViewSet(ModelViewSet):
-    queryset = Skill.objects.all()
-    permission_classes = (IsAuthenticated, )
-    serializer_class = SkillSerializer
-
-    def create(self, request, *args, **kwargs):
-        print('in create')
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        
-
-        # return self.create(request, *args, **kwargs)
-        return Response({'awdawd': 'ok'})
-
-
 class SkillRemoveTagRelation(ModelViewSet):
     queryset = Skill.objects.all()
     permission_classes = (IsAuthenticated, )
@@ -453,11 +450,29 @@ class SkillRemoveTagRelation(ModelViewSet):
 class SkillDeleteViewSet(ModelViewSet):
     queryset = Skill.objects.all()
     permission_classes = (IsAuthenticated, )
-    serializer_class = SkillSerializer
+    serializer_class = SkillDeleteSerializer
 
-    # def put(self, request, *args, **kwargs):
-    #     return self.destroy(request, *args, **kwargs)
+
+# class SkillCreateViewSet(ModelViewSet):
+#     queryset = Skill.objects.all()
+#     permission_classes = (IsAuthenticated,)
+#     serializer_class = SkillCreateSerializer
+
+    # def create(self, request, *args, **kwargs):
+    #     print('in create')
     #
-    # def destroy(self, request, *args, **kwargs):
-    #     Skill.objects.get(id=request.data['id']).delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    #
+    #     # return self.create(request, *args, **kwargs)
+    #     return Response({'awdawd': 'ok'})
+
+
+# class Check(ModelViewSet):
+#     queryset = Skill.objects.all()
+#     permission_classes = (IsAuthenticated,)
+#     serializer_class = SkillCreateSerializer
+#
+#
+# class Check_v2(ModelViewSet):
+#     queryset = Skill.objects.all()
+#     permission_classes = (IsAuthenticated,)
+#     serializer_class = SkillCreateSerializer

@@ -139,3 +139,15 @@ class SkillRemoveTagRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ('id', 'tag_id')
+
+
+class SkillDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = ('id', 'tag_id')
+
+
+class SkillCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = ('id', 'tag_id')
