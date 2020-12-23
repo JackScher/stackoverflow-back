@@ -10,7 +10,7 @@ class UserIdSerializer(serializers.ModelSerializer):
         fields = ['id']
 
 
-class GoogleAuthSerializer(serializers.ModelSerializer):
+class AuthSerializer(serializers.ModelSerializer):
     user = UserIdSerializer()
 
     class Meta:

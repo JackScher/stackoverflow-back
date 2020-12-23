@@ -27,6 +27,18 @@ class QuestionViewSet(ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
     serializer_class = QuestionSerializer
 
+    def list(self, request, *args, **kwargs):
+        print('in list')
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 class QuestionUpdateViewSet(ModelViewSet):
     queryset = Question.objects.all()
@@ -394,9 +406,9 @@ class SkillViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         user = UserProfile.objects.get(id=request.user.id)
-        serializer = self.get_serializer(data=request.data)
         tags, tag_for_validation = self.get_tags_information(request)
         request.data['tag_id'] = tag_for_validation
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         new_skill = Skill.objects.create(name=serializer.validated_data['name'], user_id=user)
         new_skill.tag_id.set(tags)
