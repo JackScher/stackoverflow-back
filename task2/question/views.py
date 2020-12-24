@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -26,6 +27,10 @@ class QuestionViewSet(ModelViewSet):
     queryset = Question.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, )
     serializer_class = QuestionSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_fields = ['tags']
+    ordering_fields = ['date_create']
+
 
     def list(self, request, *args, **kwargs):
         print('in list')
@@ -400,9 +405,10 @@ class ModeratorAnswerEditViewSet(ModelViewSet):
 class SkillViewSet(ModelViewSet):
     queryset = Skill.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, )
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filter_fields = ['user_id']
     serializer_class = SkillSerializer
+    ordering_fields = ['id']
 
     def create(self, request, *args, **kwargs):
         user = UserProfile.objects.get(id=request.user.id)

@@ -6,6 +6,7 @@ from rest_framework.response import Response
 import requests
 import json
 from auth_services.serializers import AuthSerializer
+from auth_services.services import AuthRegistrationService
 from profiles.models import UserProfile
 
 
@@ -18,7 +19,8 @@ class GoogleLogin(SocialLoginView):
         url = self.create_url(request)
         resp = requests.get(url)
         resp = json.loads(resp.text)
-        result = self.logic(resp)
+        # result = self.logic(resp)
+        result = AuthRegistrationService(resp['email'], resp['name']).execute()
         result = AuthSerializer(result)
         return Response({'detail': result.data}, status=status.HTTP_200_OK)
 
@@ -28,25 +30,25 @@ class GoogleLogin(SocialLoginView):
         url += id_token
         return url
 
-    def logic(self, dict):
-        user = self.check_user_exist(dict)
-        if user:
-            token = Token.objects.get(user=user)
-            return {'key': token.key, 'user': user}
-        else:
-            curr_user = UserProfile.objects.create_user(email=dict['email'], username=dict['name'])
-            curr_user.rating += 1
-            curr_user.save()
-            token = Token.objects.create(user=curr_user)
-            return {'key': token.key, 'user': curr_user}
-
-
-    def check_user_exist(self, dict):
-        try:
-            user = UserProfile.objects.get(email=dict['email'])
-            return user
-        except:
-            return None
+    # def logic(self, dict):
+    #     user = self.check_user_exist(dict)
+    #     if user:
+    #         token = Token.objects.get(user=user)
+    #         return {'key': token.key, 'user': user}
+    #     else:
+    #         curr_user = UserProfile.objects.create_user(email=dict['email'], username=dict['name'])
+    #         curr_user.rating += 1
+    #         curr_user.save()
+    #         token = Token.objects.create(user=curr_user)
+    #         return {'key': token.key, 'user': curr_user}
+    #
+    #
+    # def check_user_exist(self, dict):
+    #     try:
+    #         user = UserProfile.objects.get(email=dict['email'])
+    #         return user
+    #     except:
+    #         return None
 
 
 class LinkedinLogin(SocialLoginView):
@@ -58,7 +60,8 @@ class LinkedinLogin(SocialLoginView):
         access_token = self.get_access_token(request)
         email = self.get_user_email(access_token)
         username = self.get_user_name(access_token)
-        result = self.logic(email, username)
+        # result = self.logic(email, username)
+        result = AuthRegistrationService(email, username).execute()
         result = AuthSerializer(result)
         return Response({'detail': result.data}, status=status.HTTP_200_OK)
 
@@ -82,21 +85,21 @@ class LinkedinLogin(SocialLoginView):
         resp = json.loads(resp.text)
         return resp['localizedFirstName']
 
-    def logic(self, email, username):
-        user = self.check_user_exist(email)
-        if user:
-            token = Token.objects.get(user=user)
-            return {'key': token.key, 'user': user}
-        else:
-            curr_user = UserProfile.objects.create_user(email=email, username=username)
-            curr_user.rating += 1
-            curr_user.save()
-            token = Token.objects.create(user=curr_user)
-            return {'key': token.key, 'user': curr_user}
-
-    def check_user_exist(self, email):
-        try:
-            user = UserProfile.objects.get(email=email)
-            return user
-        except:
-            return None
+    # def logic(self, email, username):
+    #     user = self.check_user_exist(email)
+    #     if user:
+    #         token = Token.objects.get(user=user)
+    #         return {'key': token.key, 'user': user}
+    #     else:
+    #         curr_user = UserProfile.objects.create_user(email=email, username=username)
+    #         curr_user.rating += 1
+    #         curr_user.save()
+    #         token = Token.objects.create(user=curr_user)
+    #         return {'key': token.key, 'user': curr_user}
+    #
+    # def check_user_exist(self, email):
+    #     try:
+    #         user = UserProfile.objects.get(email=email)
+    #         return user
+    #     except:
+    #         return None
